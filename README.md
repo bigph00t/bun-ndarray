@@ -63,7 +63,7 @@ These are present as explicit next-step work, not silent omissions:
 
 - Job API is stubbed (`ND_E_NOT_IMPLEMENTED`)
 - `toArrayBuffer` deallocator callback path is wired in scaffold form and still needs production hardening in CI across platforms
-- Full dtype kernel parity is incomplete (`f64` is most optimized; `f32`/`i32` are baseline scalar paths)
+- Full dtype kernel parity is incomplete (`f64` is most optimized; `f32` has contiguous fast paths; `i32` remains baseline scalar)
 - Slicing supports empty outputs and negative-step defaults; richer slicing DSL parity still needs refinement
 - Packaging is scaffolded with optional dependency package templates but not yet published as split npm artifacts
 - CI workflows are scaffolded under `.github/workflows/` but not yet battle-tested in remote runners

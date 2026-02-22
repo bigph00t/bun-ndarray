@@ -210,13 +210,25 @@ fn applyBinaryGeneric(op: elem_kernel.BinaryOp, a: *const ArrayHeader, b: *const
 
     if (!shapeEquals(out, bc.shape)) return error.ShapeMismatch;
 
-    if (a.dtype == .f64 and a.hasSameShape(b) and a.hasSameShape(out) and a.isContiguous() and b.isContiguous() and out.isContiguous()) {
-        const pa = try a.asConstF64();
-        const pb = try b.asConstF64();
-        const po = try out.asMutF64();
+    if (a.hasSameShape(b) and a.hasSameShape(out) and a.isContiguous() and b.isContiguous() and out.isContiguous()) {
         const len: usize = @intCast(out.len);
-        elem_kernel.binaryRawF64(op, pa, pb, po, len);
-        return;
+        switch (a.dtype) {
+            .f64 => {
+                const pa = try a.asConstF64();
+                const pb = try b.asConstF64();
+                const po = try out.asMutF64();
+                elem_kernel.binaryRawF64(op, pa, pb, po, len);
+                return;
+            },
+            .f32 => {
+                const pa = try a.asConstF32();
+                const pb = try b.asConstF32();
+                const po = try out.asMutF32();
+                elem_kernel.binaryRawF32(op, pa, pb, po, len);
+                return;
+            },
+            .i32 => {},
+        }
     }
 
     var flat: u64 = 0;

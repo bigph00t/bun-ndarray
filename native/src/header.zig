@@ -223,6 +223,22 @@ pub const ArrayHeader = struct {
         return @alignCast(@ptrCast(self.block.ptr + off));
     }
 
+    pub fn asConstF32(self: *const ArrayHeader) ![*]const f32 {
+        if (self.dtype != .f32) return error.InvalidDType;
+        if (!self.isContiguous()) return error.InvalidStrides;
+        const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;
+        const off = try self.resolveRange(0, required_bytes);
+        return @alignCast(@ptrCast(self.block.ptr + off));
+    }
+
+    pub fn asMutF32(self: *ArrayHeader) ![*]f32 {
+        if (self.dtype != .f32) return error.InvalidDType;
+        if (!self.isContiguous()) return error.InvalidStrides;
+        const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;
+        const off = try self.resolveRange(0, required_bytes);
+        return @alignCast(@ptrCast(self.block.ptr + off));
+    }
+
     pub fn dataPtr(self: *const ArrayHeader) ![*]u8 {
         if (!self.isContiguous()) return error.InvalidStrides;
         const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;

@@ -34,7 +34,7 @@ Legend:
 - Slicing views: COMPLETE baseline (views, empty outputs, negative-step defaults)
 4. TypeScript wrapper:
 - NDArray lifecycle + core ops + transform APIs: COMPLETE
-- Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (baseline kernels)
+- Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (f32 contiguous fast path + i32 baseline)
 5. FFI bridge design: COMPLETE (status + out-params + symbol table parity)
 6. Memory management: COMPLETE for explicit ownership; deallocator callback path is SCAFFOLDED
 7. SIMD strategy: SCAFFOLDED (raw SIMD hooks + contiguous fast path)

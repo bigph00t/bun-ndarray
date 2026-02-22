@@ -19,6 +19,15 @@ fn applyOp(op: BinaryOp, a: f64, b: f64) f64 {
     };
 }
 
+fn applyOpF32(op: BinaryOp, a: f32, b: f32) f32 {
+    return switch (op) {
+        .add => a + b,
+        .sub => a - b,
+        .mul => a * b,
+        .div => a / b,
+    };
+}
+
 pub fn binaryRawF64(op: BinaryOp, pa: [*]const f64, pb: [*]const f64, po: [*]f64, len: usize) void {
     const vec_len = std.simd.suggestVectorLength(f64) orelse 1;
     var i: usize = 0;
@@ -45,6 +54,30 @@ pub fn binaryRawF64(op: BinaryOp, pa: [*]const f64, pb: [*]const f64, po: [*]f64
 
 pub fn addRawF64(pa: [*]const f64, pb: [*]const f64, po: [*]f64, len: usize) void {
     binaryRawF64(.add, pa, pb, po, len);
+}
+
+pub fn binaryRawF32(op: BinaryOp, pa: [*]const f32, pb: [*]const f32, po: [*]f32, len: usize) void {
+    const vec_len = std.simd.suggestVectorLength(f32) orelse 1;
+    var i: usize = 0;
+
+    if (vec_len > 1) {
+        const V = @Vector(vec_len, f32);
+        while (i + vec_len <= len) : (i += vec_len) {
+            const va: V = pa[i..][0..vec_len].*;
+            const vb: V = pb[i..][0..vec_len].*;
+            const vr: V = switch (op) {
+                .add => va + vb,
+                .sub => va - vb,
+                .mul => va * vb,
+                .div => va / vb,
+            };
+            po[i..][0..vec_len].* = vr;
+        }
+    }
+
+    while (i < len) : (i += 1) {
+        po[i] = applyOpF32(op, pa[i], pb[i]);
+    }
 }
 
 pub fn binaryF64(op: BinaryOp, a: *const ArrayHeader, b: *const ArrayHeader, out: *ArrayHeader) !void {
