@@ -34,5 +34,25 @@ describe("export bridge", () => {
     expect(Array.from(empty.toFloat64Array())).toEqual([]);
     expect(Array.from(empty.toFloat64Array({ copy: true }))).toEqual([]);
   });
-});
 
+  test("copy export soak keeps RSS growth bounded", () => {
+    if (typeof Bun.gc !== "function") {
+      return;
+    }
+
+    using arr = NDArray.ones([250_000]); // ~2 MB payload per copy.
+    const before = process.memoryUsage().rss;
+
+    for (let i = 0; i < 128; i++) {
+      const copied = arr.toFloat64Array({ copy: true });
+      expect(copied[0]).toBe(1);
+      if ((i & 15) === 15) {
+        Bun.gc(true);
+      }
+    }
+
+    Bun.gc(true);
+    const after = process.memoryUsage().rss;
+    expect(after - before).toBeLessThan(192 * 1024 * 1024);
+  });
+});

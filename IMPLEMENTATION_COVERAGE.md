@@ -36,7 +36,7 @@ Legend:
 - NDArray lifecycle + core ops + transform APIs: COMPLETE
 - Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (f32 contiguous fast path + i32 baseline)
 5. FFI bridge design: COMPLETE (status + out-params + symbol table parity)
-6. Memory management: COMPLETE for explicit ownership; deallocator callback path is SCAFFOLDED (with dedicated export-bridge tests in CI matrix)
+6. Memory management: COMPLETE for explicit ownership; deallocator callback path is SCAFFOLDED (with dedicated export-bridge tests + copy-path soak guard)
 7. SIMD strategy: SCAFFOLDED (raw SIMD hooks + contiguous fast path)
 8. Error handling across FFI: COMPLETE
 9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
@@ -68,6 +68,6 @@ Status: Phase 1-focused scaffold only.
 
 1. Final production-hardening for the `toArrayBuffer` deallocator callback path (leak/soak guards and stricter CI gates)
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
-3. Richer slicing DSL parity beyond the current baseline
+3. Advanced slicing/indexing parity (dimension squeeze/index arrays) beyond the current baseline
 4. Publishing platform split packages to npm and validating optional dependency install flow
 5. Battle-hardening and validating release automation in remote runners

@@ -36,8 +36,8 @@ jobs:
           version: 0.15.2
       - run: bun install
       - run: bun run build:native:release
-      - run: bun test test/direct-abi.test.ts
-      - run: bun test test/export-bridge.test.ts
+      # Bun 1.3.4 can intermittently crash when direct-abi is the first/only file.
+      - run: bun test test/creation.test.ts test/direct-abi.test.ts test/export-bridge.test.ts --bail
 
   memory-stress:
     runs-on: ubuntu-latest

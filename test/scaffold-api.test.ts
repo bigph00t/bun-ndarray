@@ -178,6 +178,21 @@ describe("scaffold API", () => {
     expect(() => a.slice([2])).toThrow("out of bounds");
   });
 
+  test("slice accepts omitted and null full-axis specs", () => {
+    using a = NDArray.fromTypedArray(new Float64Array([
+      1, 2,
+      3, 4,
+    ]), [2, 2]);
+
+    using fullOmitted = a.slice();
+    using fullNull = a.slice([null, null]);
+
+    expect(fullOmitted.shape).toEqual([2, 2]);
+    expect(fullNull.shape).toEqual([2, 2]);
+    expect(Array.from(fullOmitted.toFloat64Array({ copy: true }))).toEqual([1, 2, 3, 4]);
+    expect(Array.from(fullNull.toFloat64Array({ copy: true }))).toEqual([1, 2, 3, 4]);
+  });
+
   test("compare + where produce mask-select outputs", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
     using b = NDArray.fromTypedArray(new Float64Array([2, 2, 2, 2]));

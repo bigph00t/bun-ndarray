@@ -15,7 +15,7 @@ export type SliceSpanSpec = {
   stop?: number;
   step?: number;
 };
-export type SliceSpec = number | SliceSpanSpec;
+export type SliceSpec = number | SliceSpanSpec | null;
 
 const finalizer = new FinalizationRegistry<number>((handle) => {
   // Best effort only; explicit dispose is still required.
@@ -363,7 +363,7 @@ export class NDArray {
     return new NDArray(handle);
   }
 
-  slice(specs: readonly SliceSpec[]): NDArray {
+  slice(specs: readonly SliceSpec[] = []): NDArray {
     this.#assertAlive();
 
     const shape = this.shape;
