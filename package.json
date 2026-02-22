@@ -1,0 +1,31 @@
+{
+  "name": "bun-ndarray",
+  "version": "0.1.0",
+  "description": "Zig-native ndarray scaffold for Bun (full-plan jump-off)",
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build:native": "bash scripts/build-native.sh",
+    "build:native:release": "bash scripts/build-native.sh release",
+    "build:native:matrix": "bash scripts/build-all.sh",
+    "build:packages": "bash scripts/build-packages.sh",
+    "test": "bun test",
+    "test:numpy": "bun test test/numpy-differential.test.ts",
+    "bench": "bun run bench/basic.bench.ts",
+    "bench:smoke": "bun run bench/basic.bench.ts",
+    "postinstall": "bun run scripts/postinstall.ts"
+  },
+  "files": [
+    "src",
+    "native/include/ndarray.h",
+    "prebuilds",
+    "scripts/postinstall.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "bun": ">=1.3.4"
+  }
+}

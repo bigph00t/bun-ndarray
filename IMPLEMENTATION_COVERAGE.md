@@ -1,0 +1,74 @@
+# Implementation Coverage (Scaffold Pass)
+
+Date: 2026-02-22
+
+This file maps current implementation status back to `CODEX-TAKEOFF.md`, `PLAN.md`, and `LOAF.md`.
+
+## CODEX-TAKEOFF.md
+
+Status: Complete and superseded by broader scaffold.
+
+- Core ABI + wrapper + tests + build: complete
+- Memory/lifetime constraints from spikes: enforced
+- SIMD hooks + stress tests: complete
+
+## PLAN.md (Phase 1)
+
+Legend:
+- COMPLETE: implemented and tested in this repository
+- SCAFFOLDED: implemented as a working baseline or explicit stub for future hardening
+- PENDING: not yet implemented in this pass
+
+### Sections 1-13 (Phase 1 execution)
+
+1. Scope & success criteria: SCAFFOLDED
+2. Repository structure: SCAFFOLDED
+3. Zig core library:
+- Lifecycle, metadata, create/copy: COMPLETE
+- Elementwise add/sub/mul/div: COMPLETE (broadcast-aware for f64)
+- Elementwise eq/lt/gt/where: COMPLETE (broadcast-aware)
+- Sum reduction: COMPLETE
+- Axis reduction (`sum_axis`): COMPLETE
+- Matmul baseline: COMPLETE (2D f64)
+- Broadcasting engine: COMPLETE for current op surface
+- Slicing views: SCAFFOLDED/WORKING (view slicing with non-empty slice constraint)
+4. TypeScript wrapper:
+- NDArray lifecycle + core ops + transform APIs: COMPLETE
+- Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (baseline kernels)
+5. FFI bridge design: COMPLETE (status + out-params + symbol table parity)
+6. Memory management: COMPLETE for explicit ownership; deallocator callback path is SCAFFOLDED
+7. SIMD strategy: SCAFFOLDED (raw SIMD hooks + contiguous fast path)
+8. Error handling across FFI: COMPLETE
+9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
+10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + optional numpy differential)
+11. Benchmarking strategy: SCAFFOLDED (`bench/basic.bench.ts`)
+12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + CI workflow scaffolds)
+13. Step-by-step implementation order: COMPLETE through practical scaffold equivalents
+
+### Sections 14-16
+
+14. Open questions: SCAFFOLDED via implementation defaults; still needs final product decisions
+15. Risk register: PENDING (no dedicated risk automation/gates file)
+16. References: N/A (documentation section)
+
+### Sections 17-22 (Codex append sections)
+
+17-20 research constraints: COMPLETE adoption where code-relevant
+21 exact ABI packet: SCAFFOLDED with broad parity and explicit stubs where unresolved
+22 spike updates: COMPLETE adoption (manual dispose, alignment expectations, deallocator caveat)
+
+## LOAF.md (Project Vision)
+
+Status: Phase 1-focused scaffold only.
+
+- Phase 1 (`bun-ndarray` core): SCAFFOLDED/WORKING
+- Phase 2+ (full op breadth, distribution ecosystem, `bun-frame`, MiniLoaf, full Loaf platform): PENDING
+
+## Explicit Remaining Work Before "Full Plan Complete"
+
+1. `toArrayBuffer` deallocator callback bridge end-to-end ownership path
+2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
+3. Empty-slice semantics and richer slicing DSL parity
+4. Differential tests against NumPy in CI (currently optional/skip when NumPy missing locally)
+5. Published platform split packages + optionalDependencies release workflow
+6. CI matrix battle-hardening and release artifact publishing automation

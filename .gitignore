@@ -1,0 +1,11 @@
+# Bun / Node
+node_modules/
+
+# Zig build artifacts and caches
+native/.zig-cache/
+native/zig-out/
+native/zig-out-matrix/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
