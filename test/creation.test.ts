@@ -31,9 +31,23 @@ describe("creation", () => {
     expect(() => NDArray.fromTypedArray(src, [3, 3])).toThrow("shape product");
   });
 
-  test("zeros rejects non-positive dimensions", () => {
-    expect(() => NDArray.zeros([2, 0])).toThrow("invalid dimension");
+  test("zeros supports empty dimensions and empty exports", () => {
+    using arr = NDArray.zeros([2, 0, 3]);
+    expect(arr.shape).toEqual([2, 0, 3]);
+    expect(arr.length).toBe(0);
+    expect(arr.byteLength).toBe(0);
+    expect(Array.from(arr.toFloat64Array())).toEqual([]);
+  });
+
+  test("zeros rejects negative dimensions", () => {
     expect(() => NDArray.zeros([2, -1])).toThrow("invalid dimension");
+  });
+
+  test("fromTyped supports empty typed arrays", () => {
+    using arr = NDArray.fromTypedArray(new Float64Array(0), [0]);
+    expect(arr.shape).toEqual([0]);
+    expect(arr.length).toBe(0);
+    expect(Array.from(arr.toFloat64Array())).toEqual([]);
   });
 
   test("scalar shape [] is supported", () => {

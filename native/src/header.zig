@@ -22,12 +22,21 @@ pub const ArrayHeader = struct {
     allocator: Allocator,
 
     pub fn computeLen(shape: []const i64) !u64 {
+        if (shape.len == 0) return 1;
+
         var len: u64 = 1;
+        var has_zero = false;
         for (shape) |dim| {
-            if (dim <= 0) return error.InvalidShape;
-            len = std.math.mul(u64, len, @as(u64, @intCast(dim))) catch return error.ShapeOverflow;
+            if (dim < 0) return error.InvalidShape;
+            if (dim == 0) {
+                has_zero = true;
+                continue;
+            }
+            if (!has_zero) {
+                len = std.math.mul(u64, len, @as(u64, @intCast(dim))) catch return error.ShapeOverflow;
+            }
         }
-        return len;
+        return if (has_zero) 0 else len;
     }
 
     pub fn computeContiguousStrides(dtype: DType, shape: []const i64, out_strides: []i64) !void {
@@ -91,7 +100,8 @@ pub const ArrayHeader = struct {
     pub fn createView(allocator: Allocator, base: *ArrayHeader, shape: []const i64, strides: []const i64, offset_bytes: i64, flags: u32) !*ArrayHeader {
         if (shape.len > MAX_DIMS or shape.len != strides.len) return error.InvalidShape;
         const len = try computeLen(shape);
-        _ = try base.resolveRange(offset_bytes, base.dtype.byteSize());
+        const required_bytes = if (len == 0) 0 else base.dtype.byteSize();
+        _ = try base.resolveRange(offset_bytes, required_bytes);
 
         const shape_copy = try allocator.alloc(i64, shape.len);
         errdefer allocator.free(shape_copy);
@@ -200,20 +210,23 @@ pub const ArrayHeader = struct {
     pub fn asConstF64(self: *const ArrayHeader) ![*]const f64 {
         if (self.dtype != .f64) return error.InvalidDType;
         if (!self.isContiguous()) return error.InvalidStrides;
-        const off = try self.resolveRange(0, 1);
+        const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;
+        const off = try self.resolveRange(0, required_bytes);
         return @alignCast(@ptrCast(self.block.ptr + off));
     }
 
     pub fn asMutF64(self: *ArrayHeader) ![*]f64 {
         if (self.dtype != .f64) return error.InvalidDType;
         if (!self.isContiguous()) return error.InvalidStrides;
-        const off = try self.resolveRange(0, 1);
+        const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;
+        const off = try self.resolveRange(0, required_bytes);
         return @alignCast(@ptrCast(self.block.ptr + off));
     }
 
     pub fn dataPtr(self: *const ArrayHeader) ![*]u8 {
         if (!self.isContiguous()) return error.InvalidStrides;
-        const off = try self.resolveRange(0, 1);
+        const required_bytes: usize = if (self.byteLen() == 0) 0 else 1;
+        const off = try self.resolveRange(0, required_bytes);
         return self.block.ptr + off;
     }
 

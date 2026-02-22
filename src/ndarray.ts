@@ -34,7 +34,7 @@ function assertShape(shape: readonly number[]): void {
     throw new Error("ndarray scaffold supports up to 8 dimensions");
   }
   for (const dim of shape) {
-    if (!Number.isInteger(dim) || dim <= 0) {
+    if (!Number.isInteger(dim) || dim < 0) {
       throw new Error(`invalid dimension: ${dim}`);
     }
   }
@@ -115,14 +115,26 @@ function inferDTypeFromTyped(data: Typed): DType {
   throw new Error("unsupported TypedArray");
 }
 
-function typedArrayCtor(dtype: DType): { new (buffer: ArrayBuffer): Typed; BYTES_PER_ELEMENT: number } {
+function typedArrayCtor(dtype: DType): {
+  new (input: number | ArrayBuffer): Typed;
+  BYTES_PER_ELEMENT: number;
+} {
   switch (dtype) {
     case "f32":
-      return Float32Array as unknown as { new (buffer: ArrayBuffer): Typed; BYTES_PER_ELEMENT: number };
+      return Float32Array as unknown as {
+        new (input: number | ArrayBuffer): Typed;
+        BYTES_PER_ELEMENT: number;
+      };
     case "f64":
-      return Float64Array as unknown as { new (buffer: ArrayBuffer): Typed; BYTES_PER_ELEMENT: number };
+      return Float64Array as unknown as {
+        new (input: number | ArrayBuffer): Typed;
+        BYTES_PER_ELEMENT: number;
+      };
     case "i32":
-      return Int32Array as unknown as { new (buffer: ArrayBuffer): Typed; BYTES_PER_ELEMENT: number };
+      return Int32Array as unknown as {
+        new (input: number | ArrayBuffer): Typed;
+        BYTES_PER_ELEMENT: number;
+      };
   }
 }
 
@@ -181,7 +193,7 @@ export class NDArray {
     const handle = withOutHandle("nd_array_from_host_copy", (out) =>
       Number(
         native.nd_array_from_host_copy(
-          ptr(data),
+          ptrOrNull(data),
           dtypeToCode(resolvedDType),
           shapePtr,
           0,
@@ -370,7 +382,7 @@ export class NDArray {
         throw new Error(`invalid slice step at dim ${i}: ${step}`);
       }
       const defaultStart = step > 0 ? 0 : shape[i] - 1;
-      const defaultStop = step > 0 ? shape[i] : -1;
+      const defaultStop = step > 0 ? shape[i] : -(shape[i] + 1);
 
       starts[i] = BigInt(spec.start ?? defaultStart);
       stops[i] = BigInt(spec.stop ?? defaultStop);
@@ -527,6 +539,11 @@ export class NDArray {
   toTypedArray(options?: { copy?: boolean }): Typed {
     this.#assertAlive();
 
+    const ctor = typedArrayCtor(this.dtype);
+    if (this.size === 0) {
+      return new ctor(0);
+    }
+
     const out4 = new BigUint64Array(4);
     const status = Number(native.nd_array_export_bytes(this.#asBigIntHandle(), ptr(out4)));
     if (status !== 0) {
@@ -545,20 +562,20 @@ export class NDArray {
       throw new Error("nd_array_export_bytes returned invalid data pointer");
     }
 
-    const ctor = typedArrayCtor(this.dtype);
+    if (options?.copy) {
+      const copied = new ctor(toArrayBuffer(dataPtr, 0, byteLen)).slice();
+      if (deallocatorCtx > 0) {
+        checkStatus("nd_export_release_ctx", Number(native.nd_export_release_ctx(BigInt(deallocatorCtx))));
+      }
+      return copied;
+    }
+
     let ab: ArrayBuffer;
     if (deallocatorFn > 0 && deallocatorCtx > 0) {
       try {
         // Bun expects a raw native callback pointer + opaque context.
         ab = (toArrayBuffer as any)(dataPtr, 0, byteLen, deallocatorCtx, deallocatorFn);
       } catch (cause) {
-        if (options?.copy) {
-          const fallback = toArrayBuffer(dataPtr, 0, byteLen);
-          const fallbackView = new ctor(fallback);
-          const copied = fallbackView.slice();
-          checkStatus("nd_export_release_ctx", Number(native.nd_export_release_ctx(BigInt(deallocatorCtx))));
-          return copied;
-        }
         checkStatus("nd_export_release_ctx", Number(native.nd_export_release_ctx(BigInt(deallocatorCtx))));
         throw new Error(
           "native deallocator callback bridge failed for zero-copy export; use toTypedArray({ copy: true })",
@@ -570,10 +587,6 @@ export class NDArray {
     }
 
     const view = new ctor(ab);
-
-    if (options?.copy) {
-      return view.slice();
-    }
     return view;
   }
 

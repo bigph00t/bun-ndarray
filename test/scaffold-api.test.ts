@@ -130,6 +130,20 @@ describe("scaffold API", () => {
     expect(s.sum()).toBeCloseTo(22, 12);
   });
 
+  test("slice supports negative-step defaults and empty outputs", () => {
+    using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
+    using reversed = a.slice([{ step: -1 }]);
+    using empty = a.slice([{ step: -1, stop: -1 }]);
+
+    expect(reversed.shape).toEqual([4]);
+    expect(Array.from(reversed.toFloat64Array({ copy: true }))).toEqual([4, 3, 2, 1]);
+
+    expect(empty.shape).toEqual([0]);
+    expect(empty.length).toBe(0);
+    expect(Array.from(empty.toFloat64Array())).toEqual([]);
+    expect(empty.sum()).toBe(0);
+  });
+
   test("compare + where produce mask-select outputs", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
     using b = NDArray.fromTypedArray(new Float64Array([2, 2, 2, 2]));

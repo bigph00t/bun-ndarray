@@ -67,11 +67,41 @@ describe("direct ABI", () => {
     expect(msg.length).toBeGreaterThan(0);
   });
 
-  test("invalid shape (zero dimension) returns ND_E_INVALID_SHAPE", () => {
-    const shape = new BigInt64Array([0n]);
+  test("invalid shape (negative dimension) returns ND_E_INVALID_SHAPE", () => {
+    const shape = new BigInt64Array([-1n]);
     const out = new BigUint64Array(1);
     const status = Number(native.nd_array_alloc(4, ptr(shape), 1, 0, ptr(out)));
     expect(status).toBe(3);
+  });
+
+  test("zero-length allocations are valid and sum to zero", () => {
+    const shape = new BigInt64Array([0n, 3n]);
+    const out = new BigUint64Array(1);
+    expect(Number(native.nd_array_alloc(4, ptr(shape), 2, 0, ptr(out)))).toBe(0);
+
+    try {
+      const elems = new BigUint64Array(1);
+      const bytes = new BigUint64Array(1);
+      const ndim = new Uint8Array(1);
+      const shapeOut = new BigInt64Array(2);
+
+      expect(Number(native.nd_array_elem_count(out[0], ptr(elems)))).toBe(0);
+      expect(Number(native.nd_array_byte_len(out[0], ptr(bytes)))).toBe(0);
+      expect(Number(native.nd_array_ndim(out[0], ptr(ndim)))).toBe(0);
+      expect(Number(native.nd_array_shape_copy(out[0], ptr(shapeOut), 2))).toBe(0);
+
+      expect(Number(elems[0])).toBe(0);
+      expect(Number(bytes[0])).toBe(0);
+      expect(ndim[0]).toBe(2);
+      expect(Array.from(shapeOut, Number)).toEqual([0, 3]);
+
+      const summed = new BigUint64Array(1);
+      expect(Number(native.nd_sum_all(out[0], ptr(summed)))).toBe(0);
+      expect(Array.from(readF64(summed[0], 1))).toEqual([0]);
+      expect(Number(native.nd_array_release(summed[0]))).toBe(0);
+    } finally {
+      expect(Number(native.nd_array_release(out[0]))).toBe(0);
+    }
   });
 
   test("shape_copy validates output capacity", () => {
@@ -346,6 +376,10 @@ describe("direct ABI", () => {
     const hSlice = new BigUint64Array(1);
     expect(Number(native.nd_array_slice(hBase[0], ptr(starts), ptr(stops), ptr(steps), 2, ptr(hSlice)))).toBe(0);
 
+    const startsEmpty = new BigInt64Array([2n]);
+    const stopsEmpty = new BigInt64Array([2n]);
+    const stepsEmpty = new BigInt64Array([1n]);
+
     const isContig = new Uint32Array(1);
     expect(Number(native.nd_array_is_contiguous(hSlice[0], ptr(isContig)))).toBe(0);
     expect(isContig[0]).toBe(0);
@@ -364,6 +398,11 @@ describe("direct ABI", () => {
     const hCmpLhs = new BigUint64Array(1);
     const lhsData = new Float64Array([1, 2, 3, 4]);
     expect(Number(native.nd_array_from_host_copy(ptr(lhsData), 4, ptr(cmpShape), 0, 1, 0, ptr(hCmpLhs)))).toBe(0);
+
+    const hEmptyOk = new BigUint64Array(1);
+    expect(Number(native.nd_array_slice(hCmpLhs[0], ptr(startsEmpty), ptr(stopsEmpty), ptr(stepsEmpty), 1, ptr(hEmptyOk)))).toBe(0);
+    expect(Array.from(readF64(hEmptyOk[0], 0))).toEqual([]);
+    expect(Number(native.nd_array_release(hEmptyOk[0]))).toBe(0);
 
     const hMask = new BigUint64Array(1);
     expect(Number(native.nd_gt(hCmpLhs[0], hCmpRhs[0], ptr(hMask)))).toBe(0);

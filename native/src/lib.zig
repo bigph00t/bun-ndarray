@@ -419,7 +419,7 @@ export fn nd_array_from_host_copy(
     out_handle: ?*u64,
 ) i32 {
     const out = out_handle orelse return setErr(.invalid_arg, "out_handle is null");
-    const src = data orelse return setErr(.invalid_arg, "data is null");
+    const src = data;
     const parsed_dtype = DType.fromAbi(dtype) catch return setErr(.invalid_dtype, "unsupported dtype");
 
     var shape_buf: [header_mod.MAX_DIMS]i64 = undefined;
@@ -437,13 +437,16 @@ export fn nd_array_from_host_copy(
         return mapError(err);
     };
 
-    if (maybe_strides) |src_strides| {
-        copyHostStridedToContiguous(header, src, shape, src_strides) catch |err| {
-            return mapError(err);
-        };
-    } else {
-        const dst = header.block.ptr[0..header.block.byte_len];
-        @memcpy(dst, src[0..header.block.byte_len]);
+    if (header.block.byte_len > 0) {
+        const src_ptr = src orelse return setErr(.invalid_arg, "data is null");
+        if (maybe_strides) |src_strides| {
+            copyHostStridedToContiguous(header, src_ptr, shape, src_strides) catch |err| {
+                return mapError(err);
+            };
+        } else {
+            const dst = header.block.ptr[0..header.block.byte_len];
+            @memcpy(dst, src_ptr[0..header.block.byte_len]);
+        }
     }
 
     return registerHeader(header, out);
@@ -717,35 +720,46 @@ export fn nd_array_slice(
         const step = if (steps) |s| s[i] else 1;
         if (step == 0) return setErr(.invalid_arg, "slice step cannot be zero");
 
+        out_strides_buf[i] = std.math.mul(i64, header.strides[i], step) catch {
+            return setErr(.invalid_strides, "slice stride overflow");
+        };
+        if (dim == 0) {
+            out_shape_buf[i] = 0;
+            continue;
+        }
+
         var start = if (starts) |s| s[i] else if (step > 0) 0 else dim - 1;
         var stop = if (stops) |s| s[i] else if (step > 0) dim else -1;
 
-        if (start < 0) start += dim;
-        if (stop < 0) stop += dim;
-
         if (step > 0) {
+            if (start < 0) start += dim;
+            if (stop < 0) stop += dim;
+
             if (start < 0) start = 0;
             if (start > dim) start = dim;
             if (stop < 0) stop = 0;
             if (stop > dim) stop = dim;
 
             const span = stop - start;
-            if (span <= 0) return setErr(.invalid_shape, "empty slices are not supported in scaffold");
-            out_shape_buf[i] = @divTrunc(span - 1, step) + 1;
+            out_shape_buf[i] = if (span <= 0) 0 else @divTrunc(span - 1, step) + 1;
         } else {
+            if (start < 0) start += dim;
+            if (stop < 0) stop += dim;
+
             if (start < -1) start = -1;
             if (start >= dim) start = dim - 1;
             if (stop < -1) stop = -1;
             if (stop >= dim) stop = dim - 1;
 
             const span = start - stop;
-            if (span <= 0) return setErr(.invalid_shape, "empty slices are not supported in scaffold");
-            out_shape_buf[i] = @divTrunc(span - 1, -step) + 1;
+            out_shape_buf[i] = if (span <= 0) 0 else @divTrunc(span - 1, -step) + 1;
         }
 
-        out_strides_buf[i] = std.math.mul(i64, header.strides[i], step) catch {
-            return setErr(.invalid_strides, "slice stride overflow");
-        };
+        // Empty views can legally point to a boundary; keep the offset non-negative.
+        if (out_shape_buf[i] == 0 and start < 0) {
+            start = 0;
+        }
+
         offset_delta = std.math.add(i64, offset_delta, std.math.mul(i64, header.strides[i], start) catch return setErr(.invalid_strides, "slice offset overflow")) catch {
             return setErr(.invalid_strides, "slice offset overflow");
         };

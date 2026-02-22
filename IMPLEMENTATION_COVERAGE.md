@@ -31,7 +31,7 @@ Legend:
 - Axis reduction (`sum_axis`): COMPLETE
 - Matmul baseline: COMPLETE (2D f64)
 - Broadcasting engine: COMPLETE for current op surface
-- Slicing views: SCAFFOLDED/WORKING (view slicing with non-empty slice constraint)
+- Slicing views: COMPLETE baseline (views, empty outputs, negative-step defaults)
 4. TypeScript wrapper:
 - NDArray lifecycle + core ops + transform APIs: COMPLETE
 - Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (baseline kernels)
@@ -48,7 +48,7 @@ Legend:
 ### Sections 14-16
 
 14. Open questions: SCAFFOLDED via implementation defaults; still needs final product decisions
-15. Risk register: PENDING (no dedicated risk automation/gates file)
+15. Risk register: COMPLETE baseline (`RISK_REGISTER.md`)
 16. References: N/A (documentation section)
 
 ### Sections 17-22 (Codex append sections)
@@ -68,7 +68,7 @@ Status: Phase 1-focused scaffold only.
 
 1. Production-hardening the `toArrayBuffer` deallocator callback path across CI platforms
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
-3. Empty-slice semantics and richer slicing DSL parity
-4. Differential tests against NumPy in CI (currently optional/skip when NumPy missing locally)
+3. Richer slicing DSL parity beyond the current baseline
+4. Promote NumPy differential from nightly scaffold to release-gating CI policy
 5. Publishing platform split packages to npm and validating optional dependency install flow
 6. CI matrix battle-hardening and release artifact publishing automation

@@ -9,17 +9,20 @@ pub const ALIGNMENT: std.mem.Alignment = @enumFromInt(6); // 2^6 = 64
 pub const DataBlock = struct {
     ptr: [*]u8,
     byte_len: usize,
+    alloc_len: usize,
     refcount: AtomicU32,
     allocator: Allocator,
 
     pub fn create(allocator: Allocator, byte_len: usize) !*DataBlock {
-        const raw = try allocator.alignedAlloc(u8, ALIGNMENT, byte_len);
+        const alloc_len = if (byte_len == 0) 1 else byte_len;
+        const raw = try allocator.alignedAlloc(u8, ALIGNMENT, alloc_len);
         @memset(raw, 0);
 
         const block = try allocator.create(DataBlock);
         block.* = .{
             .ptr = raw.ptr,
             .byte_len = byte_len,
+            .alloc_len = alloc_len,
             .refcount = AtomicU32.init(1),
             .allocator = allocator,
         };
@@ -49,7 +52,7 @@ pub const DataBlock = struct {
         if (prev == 1) {
             _ = self.refcount.load(.acquire);
             const raw: [*]align(ALIGN_BYTES) u8 = @alignCast(@ptrCast(self.ptr));
-            self.allocator.free(raw[0..self.byte_len]);
+            self.allocator.free(raw[0..self.alloc_len]);
             self.allocator.destroy(self);
             return true;
         }
