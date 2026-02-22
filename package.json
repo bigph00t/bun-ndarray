@@ -11,9 +11,11 @@
     "build:native:release": "bash scripts/build-native.sh release",
     "build:native:matrix": "bash scripts/build-all.sh",
     "build:packages": "bash scripts/build-packages.sh",
+    "metadata:artifacts": "bun run scripts/write-artifact-metadata.ts",
     "sync:platform-packages": "bash scripts/sync-platform-packages.sh",
     "test": "bun test",
     "test:numpy": "bun test test/numpy-differential.test.ts",
+    "test:optional-install-smoke": "bash scripts/optional-install-smoke.sh",
     "bench": "bun run bench/basic.bench.ts",
     "bench:smoke": "bun run bench/basic.bench.ts",
     "postinstall": "bun run scripts/postinstall.ts"

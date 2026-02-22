@@ -71,3 +71,21 @@ jobs:
       - run: bun install
       - run: bun run build:native:release
       - run: bun run test:numpy
+
+  package-install-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.15.2
+      - run: bun install
+      - run: bun run build:native:matrix
+      - run: bun run build:packages
+      - run: bun run test:optional-install-smoke

@@ -16,6 +16,9 @@ export type SliceSpanSpec = {
   step?: number;
 };
 export type SliceSpec = number | SliceSpanSpec | null;
+export type SliceOptions = {
+  squeeze?: boolean;
+};
 
 const finalizer = new FinalizationRegistry<number>((handle) => {
   // Best effort only; explicit dispose is still required.
@@ -363,7 +366,7 @@ export class NDArray {
     return new NDArray(handle);
   }
 
-  slice(specs: readonly SliceSpec[] = []): NDArray {
+  slice(specs: readonly SliceSpec[] = [], options?: SliceOptions): NDArray {
     this.#assertAlive();
 
     const shape = this.shape;
@@ -375,6 +378,7 @@ export class NDArray {
     const starts = new BigInt64Array(ndim);
     const stops = new BigInt64Array(ndim);
     const steps = new BigInt64Array(ndim);
+    const indexedDims: number[] = [];
 
     for (let i = 0; i < ndim; i++) {
       const rawSpec = specs[i];
@@ -389,6 +393,7 @@ export class NDArray {
         if (idx < 0 || idx >= shape[i]!) {
           throw new Error(`slice index out of bounds at dim ${i}: ${rawSpec}`);
         }
+        indexedDims.push(i);
         starts[i] = BigInt(idx);
         stops[i] = BigInt(idx + 1);
         steps[i] = 1n;
@@ -421,7 +426,30 @@ export class NDArray {
       ),
     );
 
-    return new NDArray(handle);
+    const view = new NDArray(handle);
+    if (!options?.squeeze || indexedDims.length === 0) {
+      return view;
+    }
+
+    const indexed = new Set(indexedDims);
+    const viewShape = view.shape;
+    const squeezedShape = viewShape.filter((_, dim) => !indexed.has(dim));
+    if (squeezedShape.length === viewShape.length) {
+      return view;
+    }
+
+    let base: NDArray = view;
+    try {
+      if (!view.isContiguous) {
+        base = view.contiguous();
+      }
+      return base.reshape(squeezedShape);
+    } finally {
+      if (base !== view) {
+        base.dispose();
+      }
+      view.dispose();
+    }
   }
 
   #binary(rhs: NDArray, symbol: "nd_add" | "nd_sub" | "nd_mul" | "nd_div"): NDArray {
