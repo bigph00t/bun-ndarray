@@ -40,9 +40,9 @@ Legend:
 7. SIMD strategy: SCAFFOLDED (raw SIMD hooks + contiguous fast path)
 8. Error handling across FFI: COMPLETE
 9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
-10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + numpy differential in CI)
+10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + numpy differential in CI + artifact metadata checks)
 11. Benchmarking strategy: SCAFFOLDED (`bench/basic.bench.ts`)
-12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI/release workflow scaffolds + install smoke gate)
+12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI/release workflow scaffolds + install smoke gate + artifact metadata manifests)
 13. Step-by-step implementation order: COMPLETE through practical scaffold equivalents
 
 ### Sections 14-16
@@ -68,6 +68,6 @@ Status: Phase 1-focused scaffold only.
 
 1. Final production-hardening for the `toArrayBuffer` deallocator callback path (leak/soak guards and stricter CI gates)
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
-3. Advanced slicing/indexing parity (dimension squeeze/index arrays) beyond the current baseline
+3. Advanced slicing/indexing parity (index arrays/fancy indexing) beyond the current baseline
 4. Publishing platform split packages to npm (optional dependency install flow is now smoke-validated in CI/release workflows)
 5. Battle-hardening and validating release automation in remote runners

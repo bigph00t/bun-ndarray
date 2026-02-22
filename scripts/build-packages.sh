@@ -28,3 +28,9 @@ echo "Prebuild staging complete."
 if [[ -x "$ROOT_DIR/scripts/sync-platform-packages.sh" ]]; then
   "$ROOT_DIR/scripts/sync-platform-packages.sh"
 fi
+
+if command -v bun >/dev/null 2>&1; then
+  (cd "$ROOT_DIR" && bun run scripts/write-artifact-metadata.ts)
+else
+  echo "Skipped metadata generation: bun not found on PATH." >&2
+fi

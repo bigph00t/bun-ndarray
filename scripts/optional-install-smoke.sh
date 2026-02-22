@@ -74,6 +74,8 @@ JSON
   EXPECTED_PLATFORM_PKG="$platform_pkg" bun -e '
     import { NDArray } from "bun-ndarray";
     import { nativeLibraryPath } from "bun-ndarray/src/ffi";
+    import { readFileSync } from "node:fs";
+    import { join } from "node:path";
 
     const expected = process.env.EXPECTED_PLATFORM_PKG;
     if (!expected) {
@@ -90,6 +92,34 @@ JSON
       throw new Error(
         `expected optional platform package path containing "${expected}", got "${nativeLibraryPath}"`,
       );
+    }
+
+    const platformMetaPath = join(process.cwd(), "node_modules", expected, "artifact-metadata.json");
+    const platformMeta = JSON.parse(readFileSync(platformMetaPath, "utf8")) as {
+      packageName: string;
+      abiVersion: number;
+      sha256: string;
+    };
+    if (platformMeta.packageName !== expected) {
+      throw new Error(`platform metadata package mismatch: ${platformMeta.packageName} !== ${expected}`);
+    }
+    if (platformMeta.abiVersion !== 1) {
+      throw new Error(`unexpected platform metadata ABI version: ${platformMeta.abiVersion}`);
+    }
+    if (typeof platformMeta.sha256 !== "string" || platformMeta.sha256.length !== 64) {
+      throw new Error("platform metadata sha256 is missing or malformed");
+    }
+
+    const rootManifestPath = join(process.cwd(), "node_modules", "bun-ndarray", "prebuilds", "manifest.json");
+    const rootManifest = JSON.parse(readFileSync(rootManifestPath, "utf8")) as {
+      artifacts: Array<{ packageName: string; sha256: string }>;
+    };
+    const entry = rootManifest.artifacts.find((it) => it.packageName === expected);
+    if (!entry) {
+      throw new Error(`root manifest missing entry for ${expected}`);
+    }
+    if (entry.sha256 !== platformMeta.sha256) {
+      throw new Error(`manifest/platform sha mismatch for ${expected}`);
     }
 
     console.log(`[optional-install-smoke] Loaded ${nativeLibraryPath}`);

@@ -1,0 +1,14 @@
+{
+  "packageName": "bun-ndarray-darwin-x64",
+  "version": "0.1.0",
+  "abiVersion": 1,
+  "bunMinVersion": ">=1.3.4",
+  "zigVersion": "0.15.2",
+  "gitSha": "de8421ac96f2938198796121c62169bfd7703203",
+  "generatedAt": "2026-02-22T20:52:56.662Z",
+  "platformKey": "darwin-x64",
+  "targetTriple": "x86_64-macos",
+  "file": "libndarray.dylib",
+  "sha256": "b81d4360c2eaafd3d73cc8823fcdc157148601e6eacf3808513b3a9fc2566120",
+  "sizeBytes": 124708
+}

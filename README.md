@@ -16,6 +16,7 @@ This repository now includes a working scaffold for the broader Phase 1/Section 
 - Async matmul job API stubs (returns `ND_E_NOT_IMPLEMENTED`)
 - Legacy low-level symbols retained for regression/perf tests (`nd_add_into`, raw SIMD hooks)
 - Differential test scaffold (`test/numpy-differential.test.ts`) that auto-runs when NumPy exists
+- Artifact metadata manifests/checksums for prebuilds and platform packages
 
 ## Safety Contract
 
