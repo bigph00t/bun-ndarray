@@ -42,7 +42,7 @@ Legend:
 9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
 10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + numpy differential in CI)
 11. Benchmarking strategy: SCAFFOLDED (`bench/basic.bench.ts`)
-12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI workflow scaffolds)
+12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI/release workflow scaffolds)
 13. Step-by-step implementation order: COMPLETE through practical scaffold equivalents
 
 ### Sections 14-16
@@ -70,4 +70,4 @@ Status: Phase 1-focused scaffold only.
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
 3. Richer slicing DSL parity beyond the current baseline
 4. Publishing platform split packages to npm and validating optional dependency install flow
-5. CI matrix battle-hardening and release artifact publishing automation
+5. Battle-hardening and validating release automation in remote runners

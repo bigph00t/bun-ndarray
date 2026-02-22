@@ -10,11 +10,12 @@ import {
 
 export type DType = "f32" | "f64" | "i32";
 export type Typed = Float32Array | Float64Array | Int32Array;
-export type SliceSpec = {
+export type SliceSpanSpec = {
   start?: number;
   stop?: number;
   step?: number;
 };
+export type SliceSpec = number | SliceSpanSpec;
 
 const finalizer = new FinalizationRegistry<number>((handle) => {
   // Best effort only; explicit dispose is still required.
@@ -376,7 +377,25 @@ export class NDArray {
     const steps = new BigInt64Array(ndim);
 
     for (let i = 0; i < ndim; i++) {
-      const spec = specs[i] ?? {};
+      const rawSpec = specs[i];
+      if (typeof rawSpec === "number") {
+        if (!Number.isInteger(rawSpec)) {
+          throw new Error(`invalid slice index at dim ${i}: ${rawSpec}`);
+        }
+        let idx = rawSpec;
+        if (idx < 0) {
+          idx += shape[i]!;
+        }
+        if (idx < 0 || idx >= shape[i]!) {
+          throw new Error(`slice index out of bounds at dim ${i}: ${rawSpec}`);
+        }
+        starts[i] = BigInt(idx);
+        stops[i] = BigInt(idx + 1);
+        steps[i] = 1n;
+        continue;
+      }
+
+      const spec: SliceSpanSpec = rawSpec ?? {};
       const step = spec.step ?? 1;
       if (!Number.isInteger(step) || step === 0) {
         throw new Error(`invalid slice step at dim ${i}: ${step}`);

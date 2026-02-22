@@ -162,6 +162,22 @@ describe("scaffold API", () => {
     expect(Array.from(reverseEmpty.toFloat64Array())).toEqual([]);
   });
 
+  test("slice supports numeric index specs (kept as length-1 axes)", () => {
+    using a = NDArray.fromTypedArray(new Float64Array([
+      10, 20,
+      30, 40,
+    ]), [2, 2]);
+
+    using row1 = a.slice([1, {}]);
+    using lastCol = a.slice([{}, -1]);
+
+    expect(row1.shape).toEqual([1, 2]);
+    expect(lastCol.shape).toEqual([2, 1]);
+    expect(Array.from(row1.toFloat64Array({ copy: true }))).toEqual([30, 40]);
+    expect(Array.from(lastCol.toFloat64Array({ copy: true }))).toEqual([20, 40]);
+    expect(() => a.slice([2])).toThrow("out of bounds");
+  });
+
   test("compare + where produce mask-select outputs", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
     using b = NDArray.fromTypedArray(new Float64Array([2, 2, 2, 2]));
