@@ -101,7 +101,10 @@ pub const ArrayHeader = struct {
         if (shape.len > MAX_DIMS or shape.len != strides.len) return error.InvalidShape;
         const len = try computeLen(shape);
         const required_bytes = if (len == 0) 0 else base.dtype.byteSize();
-        _ = try base.resolveRange(offset_bytes, required_bytes);
+        if (offset_bytes < 0) return error.InvalidOffset;
+        const start: usize = @intCast(offset_bytes);
+        const end = std.math.add(usize, start, required_bytes) catch return error.InvalidOffset;
+        if (end > base.block.byte_len) return error.InvalidOffset;
 
         const shape_copy = try allocator.alloc(i64, shape.len);
         errdefer allocator.free(shape_copy);

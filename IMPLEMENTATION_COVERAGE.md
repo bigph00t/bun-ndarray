@@ -31,7 +31,7 @@ Legend:
 - Axis reduction (`sum_axis`): COMPLETE
 - Matmul baseline: COMPLETE (2D f64)
 - Broadcasting engine: COMPLETE for current op surface
-- Slicing views: COMPLETE baseline (views, empty outputs, negative-step defaults)
+- Slicing views: COMPLETE baseline (views, empty outputs, negative-step defaults, optional squeeze for indexed axes)
 4. TypeScript wrapper:
 - NDArray lifecycle + core ops + transform APIs: COMPLETE
 - Broader dtype surface (f32/i32/f64) with explicit math limits: COMPLETE (f32 contiguous fast path + i32 baseline)
@@ -42,7 +42,7 @@ Legend:
 9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
 10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + numpy differential in CI)
 11. Benchmarking strategy: SCAFFOLDED (`bench/basic.bench.ts`)
-12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI/release workflow scaffolds)
+12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI/release workflow scaffolds + install smoke gate)
 13. Step-by-step implementation order: COMPLETE through practical scaffold equivalents
 
 ### Sections 14-16
@@ -69,5 +69,5 @@ Status: Phase 1-focused scaffold only.
 1. Final production-hardening for the `toArrayBuffer` deallocator callback path (leak/soak guards and stricter CI gates)
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
 3. Advanced slicing/indexing parity (dimension squeeze/index arrays) beyond the current baseline
-4. Publishing platform split packages to npm and validating optional dependency install flow
+4. Publishing platform split packages to npm (optional dependency install flow is now smoke-validated in CI/release workflows)
 5. Battle-hardening and validating release automation in remote runners

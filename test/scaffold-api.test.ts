@@ -193,6 +193,26 @@ describe("scaffold API", () => {
     expect(Array.from(fullNull.toFloat64Array({ copy: true }))).toEqual([1, 2, 3, 4]);
   });
 
+  test("slice squeeze drops indexed axes and supports scalar results", () => {
+    using a = NDArray.fromTypedArray(new Float64Array([
+      1, 2, 3,
+      4, 5, 6,
+    ]), [2, 3]);
+
+    using row = a.slice([1, null], { squeeze: true });
+    expect(row.shape).toEqual([3]);
+    expect(Array.from(row.toFloat64Array({ copy: true }))).toEqual([4, 5, 6]);
+
+    using scalar = a.slice([1, 2], { squeeze: true });
+    expect(scalar.shape).toEqual([]);
+    expect(Array.from(scalar.toFloat64Array({ copy: true }))).toEqual([6]);
+
+    using t = a.transpose([1, 0]);
+    using squeezedNonContig = t.slice([1, null], { squeeze: true });
+    expect(squeezedNonContig.shape).toEqual([2]);
+    expect(Array.from(squeezedNonContig.toFloat64Array({ copy: true }))).toEqual([2, 5]);
+  });
+
   test("compare + where produce mask-select outputs", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
     using b = NDArray.fromTypedArray(new Float64Array([2, 2, 2, 2]));
