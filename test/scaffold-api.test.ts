@@ -42,6 +42,16 @@ describe("scaffold API", () => {
     expect(Array.from(dense.toFloat64Array())).toEqual([1, 3, 2, 4]);
   });
 
+  test("zero-length non-contiguous views export safely", () => {
+    using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]), [2, 2]);
+    using t = a.transpose([1, 0]);
+    using empty = t.slice([{ start: 0, stop: 0 }, {}]);
+
+    expect(empty.length).toBe(0);
+    expect(empty.isContiguous).toBe(false);
+    expect(Array.from(empty.toFloat64Array({ copy: true }))).toEqual([]);
+  });
+
   test("broadcasted elementwise ops work", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2]), [2, 1]);
     using b = NDArray.fromTypedArray(new Float64Array([10, 20, 30]), [1, 3]);
@@ -134,6 +144,9 @@ describe("scaffold API", () => {
     using a = NDArray.fromTypedArray(new Float64Array([1, 2, 3, 4]));
     using reversed = a.slice([{ step: -1 }]);
     using empty = a.slice([{ step: -1, stop: -1 }]);
+    using negRange = a.slice([{ start: -10, stop: 10, step: 2 }]);
+    using reverseWindow = a.slice([{ start: 3, stop: 0, step: -1 }]);
+    using reverseEmpty = a.slice([{ start: 0, stop: 0, step: -1 }]);
 
     expect(reversed.shape).toEqual([4]);
     expect(Array.from(reversed.toFloat64Array({ copy: true }))).toEqual([4, 3, 2, 1]);
@@ -142,6 +155,11 @@ describe("scaffold API", () => {
     expect(empty.length).toBe(0);
     expect(Array.from(empty.toFloat64Array())).toEqual([]);
     expect(empty.sum()).toBe(0);
+
+    expect(Array.from(negRange.toFloat64Array({ copy: true }))).toEqual([1, 3]);
+    expect(Array.from(reverseWindow.toFloat64Array({ copy: true }))).toEqual([4, 3, 2]);
+    expect(reverseEmpty.length).toBe(0);
+    expect(Array.from(reverseEmpty.toFloat64Array())).toEqual([]);
   });
 
   test("compare + where produce mask-select outputs", () => {
