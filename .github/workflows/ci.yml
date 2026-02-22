@@ -37,6 +37,7 @@ jobs:
       - run: bun install
       - run: bun run build:native:release
       - run: bun test test/direct-abi.test.ts
+      - run: bun test test/export-bridge.test.ts
 
   memory-stress:
     runs-on: ubuntu-latest
