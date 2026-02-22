@@ -21,18 +21,28 @@ function readF64(handle: bigint, expectedLen: number): Float64Array {
   const out4 = exportBytes(handle);
   const p = Number(out4[0]);
   const bytes = Number(out4[1]);
+  const ctx = out4[3];
   expect(p).toBeGreaterThan(0);
   expect(bytes).toBe(expectedLen * Float64Array.BYTES_PER_ELEMENT);
-  return new Float64Array(toArrayBuffer(p, 0, bytes));
+  const copied = new Float64Array(new Float64Array(toArrayBuffer(p, 0, bytes)));
+  if (ctx > 0n) {
+    expect(Number(native.nd_export_release_ctx(ctx))).toBe(0);
+  }
+  return copied;
 }
 
 function readI32(handle: bigint, expectedLen: number): Int32Array {
   const out4 = exportBytes(handle);
   const p = Number(out4[0]);
   const bytes = Number(out4[1]);
+  const ctx = out4[3];
   expect(p).toBeGreaterThan(0);
   expect(bytes).toBe(expectedLen * Int32Array.BYTES_PER_ELEMENT);
-  return new Int32Array(toArrayBuffer(p, 0, bytes));
+  const copied = new Int32Array(new Int32Array(toArrayBuffer(p, 0, bytes)));
+  if (ctx > 0n) {
+    expect(Number(native.nd_export_release_ctx(ctx))).toBe(0);
+  }
+  return copied;
 }
 
 describe("direct ABI", () => {

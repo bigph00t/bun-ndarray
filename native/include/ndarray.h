@@ -106,6 +106,7 @@ ND_API nd_status_t nd_array_slice(
 
 // out4: [data_ptr, byte_len, deallocator_fn_ptr, deallocator_ctx]
 ND_API nd_status_t nd_array_export_bytes(nd_handle_t h, uint64_t* out4);
+ND_API nd_status_t nd_export_release_ctx(uint64_t ctx);
 
 ND_API nd_status_t nd_add(nd_handle_t a, nd_handle_t b, nd_handle_t* out_handle);
 ND_API nd_status_t nd_sub(nd_handle_t a, nd_handle_t b, nd_handle_t* out_handle);

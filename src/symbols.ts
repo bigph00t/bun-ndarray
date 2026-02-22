@@ -35,6 +35,7 @@ export const symbolDefs = {
     returns: FFIType.i32,
   },
   nd_array_export_bytes: { args: [FFIType.u64, FFIType.ptr], returns: FFIType.i32 },
+  nd_export_release_ctx: { args: [FFIType.u64], returns: FFIType.i32 },
 
   nd_add: { args: [FFIType.u64, FFIType.u64, FFIType.ptr], returns: FFIType.i32 },
   nd_sub: { args: [FFIType.u64, FFIType.u64, FFIType.ptr], returns: FFIType.i32 },

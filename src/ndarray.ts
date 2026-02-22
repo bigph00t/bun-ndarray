@@ -539,12 +539,36 @@ export class NDArray {
 
     const dataPtr = Number(out4[0]);
     const byteLen = Number(out4[1]);
+    const deallocatorFn = Number(out4[2]);
+    const deallocatorCtx = Number(out4[3]);
     if (!Number.isFinite(dataPtr) || dataPtr <= 0) {
       throw new Error("nd_array_export_bytes returned invalid data pointer");
     }
 
-    const ab = toArrayBuffer(dataPtr, 0, byteLen);
     const ctor = typedArrayCtor(this.dtype);
+    let ab: ArrayBuffer;
+    if (deallocatorFn > 0 && deallocatorCtx > 0) {
+      try {
+        // Bun expects a raw native callback pointer + opaque context.
+        ab = (toArrayBuffer as any)(dataPtr, 0, byteLen, deallocatorCtx, deallocatorFn);
+      } catch (cause) {
+        if (options?.copy) {
+          const fallback = toArrayBuffer(dataPtr, 0, byteLen);
+          const fallbackView = new ctor(fallback);
+          const copied = fallbackView.slice();
+          checkStatus("nd_export_release_ctx", Number(native.nd_export_release_ctx(BigInt(deallocatorCtx))));
+          return copied;
+        }
+        checkStatus("nd_export_release_ctx", Number(native.nd_export_release_ctx(BigInt(deallocatorCtx))));
+        throw new Error(
+          "native deallocator callback bridge failed for zero-copy export; use toTypedArray({ copy: true })",
+          { cause },
+        );
+      }
+    } else {
+      ab = toArrayBuffer(dataPtr, 0, byteLen);
+    }
+
     const view = new ctor(ab);
 
     if (options?.copy) {

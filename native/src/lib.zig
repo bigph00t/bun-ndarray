@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi_mod = @import("abi.zig");
+const block_mod = @import("block.zig");
 const dtype_mod = @import("dtype.zig");
 const error_mod = @import("error.zig");
 const header_mod = @import("header.zig");
@@ -13,6 +14,7 @@ const matmul_kernel = @import("kernels/matmul.zig");
 const DType = dtype_mod.DType;
 const NdStatus = error_mod.NdStatus;
 const ArrayHeader = header_mod.ArrayHeader;
+const DataBlock = block_mod.DataBlock;
 
 const allocator = std.heap.page_allocator;
 
@@ -365,6 +367,13 @@ fn registerHeader(header: *ArrayHeader, out_handle: *u64) i32 {
     out_handle.* = h;
     clearErr();
     return @intFromEnum(NdStatus.ok);
+}
+
+fn ndExportDeallocator(data_ptr: ?*anyopaque, ctx: ?*anyopaque) callconv(.c) void {
+    _ = data_ptr;
+    const c = ctx orelse return;
+    const block: *DataBlock = @ptrFromInt(@intFromPtr(c));
+    _ = block.release() catch {};
 }
 
 export fn nd_abi_version() u32 {
@@ -771,10 +780,27 @@ export fn nd_array_export_bytes(handle: u64, out4: ?[*]u64) i32 {
         return mapError(err);
     };
 
+    header.block.retain() catch |err| {
+        return mapError(err);
+    };
+
     out[0] = @intFromPtr(p);
     out[1] = header.byteLen();
-    out[2] = 0;
-    out[3] = 0;
+    out[2] = @intFromPtr(&ndExportDeallocator);
+    out[3] = @intFromPtr(header.block);
+
+    clearErr();
+    return @intFromEnum(NdStatus.ok);
+}
+
+export fn nd_export_release_ctx(ctx: u64) i32 {
+    if (ctx == 0) return setErr(.invalid_arg, "ctx is zero");
+    if (ctx > std.math.maxInt(usize)) return setErr(.invalid_arg, "ctx out of range");
+
+    const block: *DataBlock = @ptrFromInt(@as(usize, @intCast(ctx)));
+    _ = block.release() catch |err| {
+        return mapError(err);
+    };
 
     clearErr();
     return @intFromEnum(NdStatus.ok);
