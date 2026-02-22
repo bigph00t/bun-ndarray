@@ -1,0 +1,9 @@
+{
+  "name": "bun-ndarray-linux-x64-gnu",
+  "version": "0.1.0",
+  "description": "Linux x64 prebuilt binary for bun-ndarray",
+  "license": "MIT",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": ["libndarray.so"]
+}

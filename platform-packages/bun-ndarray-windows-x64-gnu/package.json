@@ -1,0 +1,9 @@
+{
+  "name": "bun-ndarray-windows-x64-gnu",
+  "version": "0.1.0",
+  "description": "Windows x64 prebuilt binary for bun-ndarray",
+  "license": "MIT",
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "files": ["ndarray.dll"]
+}

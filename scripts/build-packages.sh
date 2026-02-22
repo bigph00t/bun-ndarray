@@ -24,3 +24,7 @@ copy_if_exists "$ARTIFACT_DIR/aarch64-macos/lib/libndarray.0.1.0.dylib" "$PREBUI
 copy_if_exists "$ARTIFACT_DIR/x86_64-windows-gnu/bin/ndarray.dll" "$PREBUILDS_DIR/win32-x64/ndarray.dll"
 
 echo "Prebuild staging complete."
+
+if [[ -x "$ROOT_DIR/scripts/sync-platform-packages.sh" ]]; then
+  "$ROOT_DIR/scripts/sync-platform-packages.sh"
+fi

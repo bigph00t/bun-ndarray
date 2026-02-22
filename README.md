@@ -37,9 +37,11 @@ bun run test:numpy  # optional; skips when numpy is unavailable
 ```bash
 bun run build:native:matrix
 bun run build:packages
+bun run sync:platform-packages
 ```
 
 Artifacts are staged under `native/zig-out-matrix/` and copied into `prebuilds/`.
+Platform package artifacts are mirrored under `platform-packages/` for optional-dependency publishing workflows.
 
 ## Quick Example
 
@@ -60,8 +62,8 @@ console.log(c.sum());
 These are present as explicit next-step work, not silent omissions:
 
 - Job API is stubbed (`ND_E_NOT_IMPLEMENTED`)
-- `toArrayBuffer` deallocator callback path is not yet wired (export includes placeholders)
+- `toArrayBuffer` deallocator callback path is wired in scaffold form and still needs production hardening in CI across platforms
 - Full dtype kernel parity is incomplete (`f64` is most optimized; `f32`/`i32` are baseline scalar paths)
 - Empty-slice semantics and richer slicing DSL behavior still need full parity work
-- Packaging is scaffolded but not published as split optional-dependency platform packages
+- Packaging is scaffolded with optional dependency package templates but not yet published as split npm artifacts
 - CI workflows are scaffolded under `.github/workflows/` but not yet battle-tested in remote runners

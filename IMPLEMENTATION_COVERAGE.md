@@ -42,7 +42,7 @@ Legend:
 9. Build + cross compilation: COMPLETE (matrix script + artifact staging)
 10. Testing strategy: SCAFFOLDED (unit + stress + ABI + fuzz + wrapper coverage + optional numpy differential)
 11. Benchmarking strategy: SCAFFOLDED (`bench/basic.bench.ts`)
-12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + CI workflow scaffolds)
+12. Distribution & packaging: SCAFFOLDED (prebuild staging + postinstall detection + optional-dependency package templates + CI workflow scaffolds)
 13. Step-by-step implementation order: COMPLETE through practical scaffold equivalents
 
 ### Sections 14-16
@@ -66,9 +66,9 @@ Status: Phase 1-focused scaffold only.
 
 ## Explicit Remaining Work Before "Full Plan Complete"
 
-1. `toArrayBuffer` deallocator callback bridge end-to-end ownership path
+1. Production-hardening the `toArrayBuffer` deallocator callback path across CI platforms
 2. Full dtype optimization parity (SIMD/fast paths for f32/i32, not just scalar baselines)
 3. Empty-slice semantics and richer slicing DSL parity
 4. Differential tests against NumPy in CI (currently optional/skip when NumPy missing locally)
-5. Published platform split packages + optionalDependencies release workflow
+5. Publishing platform split packages to npm and validating optional dependency install flow
 6. CI matrix battle-hardening and release artifact publishing automation
